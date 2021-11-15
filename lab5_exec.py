@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-
+import copy
+import time
 import rospy
 import rospkg
 import os
@@ -45,23 +46,13 @@ block_yellow_world = None
 
 # Final goal positions
 # PLEASE USE THE FOLLOWING GOAL
-green_world_goal1 = Point()
-green_world_goal1.x = 0.3
-green_world_goal1.y = 0.05
-green_world_goal1.z = 0.015
-green_world_goal2 = Point()
-green_world_goal2.x = 0.4
-green_world_goal2.y = 0.05
-green_world_goal2.z = 0.015
+z_end_H = 0.04
+green_world_goal1 = [0.3, 0.05, z_end_H]
+green_world_goal2 = [0.4, 0.05, z_end_H]
 
-yellow_world_goal1 = Point()
-yellow_world_goal1.x = 0.3
-yellow_world_goal1.y = 0.25
-yellow_world_goal1.z = 0.015
-yellow_world_goal2 = Point()
-yellow_world_goal2.x = 0.4
-yellow_world_goal2.y = 0.25
-yellow_world_goal2.z = 0.015
+yellow_world_goal1 = [0.3, 0.25, z_end_H]
+yellow_world_goal2 = [0.4, 0.25, z_end_H]
+
 ############## Your Code Start Here ##############
 
 """
@@ -217,9 +208,11 @@ def move_block(pub_cmd, loop_rate, start_xw_yw_zw, target_xw_yw_zw, vel, accel):
     pick and place a block
 
     """
+    global digital_in_0
+
     xstart = start_xw_yw_zw[0]
     ystart = start_xw_yw_zw[1]
-    zstart = start_xw_yw_zw[2]
+    zstart = z_end_H
     zstart_high = zstart + 0.1
     xend = target_xw_yw_zw[0]
     yend = target_xw_yw_zw[1]
@@ -232,18 +225,21 @@ def move_block(pub_cmd, loop_rate, start_xw_yw_zw, target_xw_yw_zw, vel, accel):
     move_arm(pub_cmd, loop_rate, go_away, vel, accel)
     time.sleep(5.0)
     move_arm(pub_cmd, loop_rate, blobdest_higher, 4.0, 4.0)
+    time.sleep(1)
     move_arm(pub_cmd, loop_rate, blobdest_lower, 4.0, 4.0)
     gripper(pub_cmd, loop_rate, suction_on)
     time.sleep(1.0)
-    if digital_gripper == 0:
+    if digital_in_0 == 0:
         move_arm(pub_cmd, loop_rate, go_away, 4.0, 4.0)
         gripper(pub_cmd, loop_rate, suction_off)
         sys.exit()
     move_arm(pub_cmd, loop_rate, blobdest_higher, 4.0 ,4.0)
     time.sleep(1.0)
     move_arm(pub_cmd, loop_rate, blobtarget_higher, 4.0 ,4.0)
+    time.sleep(1)
     move_arm(pub_cmd, loop_rate, blobtarget_lower, 4.0 ,4.0)
     gripper(pub_cmd, loop_rate, suction_off)
+    move_arm(pub_cmd, loop_rate, blobtarget_higher, 4.0 ,4.0)
     move_arm(pub_cmd, loop_rate, go_away, 4.0 ,4.0)
     time.sleep(1.0)
 
@@ -292,6 +288,7 @@ class ImageConverter:
 		# the image frame to the global world frame. 
 		
         block_yellow_world = blob_search(cv_image, "yellow")
+        print('test',block_yellow_world)
         block_green_world = blob_search(cv_image, "green")
 
 if __name__ == '__main__':
@@ -342,6 +339,7 @@ if __name__ == '__main__':
     # Define image position publisher
     # rospy.Publisher(?)
     ic = ImageConverter(SPIN_RATE)
+
     time.sleep(1)
     # Define world position subscriber
     # rospy.Subscriber(?)
@@ -354,6 +352,7 @@ if __name__ == '__main__':
     vel = 4.0
     accel = 4.0
     move_arm(pub_command, loop_rate, go_away, vel, accel)
+
 
     # Spawn block
     spawn_block(config_idx, missing_block)
@@ -377,19 +376,20 @@ if __name__ == '__main__':
     # a short rospy.sleep(time in seconds) after you publish should be sufficient
 
     # lab 2 move_block()
+    #time.sleep(10)
     print('xw_yw_Y: ', block_yellow_world)
     print('xw_yw_G: ', block_green_world)
 
     yellow1 = block_yellow_world[0]
-    yellow2 = block_yellow_world[1]
+    #yellow2 = block_yellow_world[1]
     green1 = block_green_world[0]
-    green2 = block_green_world[1]
-
+    #green2 = block_green_world[1]
+    #move_block(pub_command, loop_rate, [0.2, 0.1], [0.2, 0.2, 0.015], vel, accel)
     move_block(pub_command, loop_rate, yellow1, yellow_world_goal1, vel, accel)
-    move_block(pub_command, loop_rate, yellow2, yellow_world_goal2, vel, accel)
+    #move_block(pub_command, loop_rate, yellow2, yellow_world_goal2, vel, accel)
 
     move_block(pub_command, loop_rate, green1, green_world_goal1, vel, accel)
-    move_block(pub_command, loop_rate, green2, green_world_goal2, vel, accel)
+    #move_block(pub_command, loop_rate, green2, green_world_goal2, vel, accel)
 
     ############## Your Code End Here ###############
 

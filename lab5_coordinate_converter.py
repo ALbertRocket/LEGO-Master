@@ -3,12 +3,13 @@
 import rospy
 import numpy as np
 from geometry_msgs.msg import Point
+import math
 
 # Params for camera calibration
 theta = -0.09
 beta = 730.0
-tx=-0.297435628054
-ty=-0.0763807206584
+tx= 0.29
+ty= 0.105
 
 # Params for camera
 w = 640
@@ -22,7 +23,7 @@ block_green_world = None
 block_yellow_world = None
 
 # Function that converts image coord to world coord
-def IMG2W(r,c):
+def IMG2W(c,r):
     global theta
     global beta
     global tx
@@ -30,19 +31,23 @@ def IMG2W(r,c):
 
     ################################ Your Code Start Here ################################
     # Given theta, beta, tx, ty, calculate the world coordinate of r,c namely xw, yw
-    Or = r - h
-    Oc = c - w
-    xr = Or/beta
-    yr = Oc/beta
-    xc = xr*np.cos(theta) - yr*np.sin(theta)
-    yc = yr*np.cos(theta) + xr*np.sin(theta)
-    xw = xc + tx
-    yw = yc + ty
+    Oc = c - w/2
+    print('Oc',Oc)
+    Or = r - h/2
+    print('Or',Or)
+    A = np.array([[Or/beta], [Oc/beta]])
+    #print('A',A)
+    Rz = np.array([[math.cos(theta), -1*math.sin(theta)], \
+        [math.sin(theta), math.cos(theta)]])
+    B = Rz.dot(A) + np.array([[tx], [ty]])
 
+    xw = B[1,0]
+    yw = B[0,0]
+    #xyw = [xw,yw]
     # check function with nikhils input output values
 
     ################################# Your Code End Here #################################
-    return xw, yw
+    return yw, xw
 
 def block_green_pixel_callback(data):
 

@@ -35,8 +35,12 @@ def Get_MS():
 
 
 	# ==============================================================#
-	return M, S
+    return M, S
+    
+def Screw_matrix(Svector):
+    Smatrix = np.matrix([[0,-Svector[:,2], Svector[:,1], Svector[:,3]],[Svector[:,2], 0, -Svector[:,0], Svector[:,4]],[-Svector[:,1],Svector[:,0], 0, Svector[:,5]],[0, 0, 0, 0]])
 
+    return Smatrix
 
 """
 Function that calculates encoder numbers for each motor
@@ -44,9 +48,9 @@ Function that calculates encoder numbers for each motor
 def lab_fk(theta1, theta2, theta3, theta4, theta5, theta6):
 
 	# Initialize the return_value
-	return_value = [None, None, None, None, None, None]
+    return_value = [None, None, None, None, None, None]
 
-	print("Foward kinematics calculated:\n")
+    print("Foward kinematics calculated:\n")
 
 	# =================== Your code starts here ====================#
     theta = np.array([theta1,theta2,theta3,theta4,theta5,theta6])
@@ -82,16 +86,16 @@ def lab_fk(theta1, theta2, theta3, theta4, theta5, theta6):
 
 	# ==============================================================#
 
-	print(str(T) + "\n")
+    print(str(T) + "\n")
 
-	return_value[0] = theta1 + PI
-	return_value[1] = theta2
-	return_value[2] = theta3
-	return_value[3] = theta4 - (0.5*PI)
-	return_value[4] = theta5
-	return_value[5] = theta6
+    return_value[0] = theta1 + PI
+    return_value[1] = theta2
+    return_value[2] = theta3
+    return_value[3] = theta4 - (0.5*PI)
+    return_value[4] = theta5
+    return_value[5] = theta6
 
-	return return_value
+    return return_value
 
 
 """
@@ -143,4 +147,4 @@ def lab_invk(xWgrip, yWgrip, zWgrip, yaw_WgripDegree):
     print("theta1 to theta6: " + str(thetas) + "\n")
 
     return lab_fk(float(thetas[0]), float(thetas[1]), float(thetas[2]), \
-		          float(thetas[3]), float(thetas[4]), float(thetas[5]) )
+                  float(thetas[3]), float(thetas[4]), float(thetas[5]) )

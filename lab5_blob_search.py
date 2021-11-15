@@ -3,6 +3,7 @@
 import cv2
 import numpy as np
 from geometry_msgs.msg import Point
+from lab5_coordinate_converter import *
 
 def blob_search(image_raw, color):
 
@@ -23,7 +24,7 @@ def blob_search(image_raw, color):
         lower = yellowlower
         upper = yellowupper
     elif (color == "green"):
-        lower == greenlower
+        lower = greenlower
         upper = greenupper
 
 
@@ -72,7 +73,9 @@ def blob_search(image_raw, color):
         print("One blob found... Yay!")
         keypoint = keypoints[0]
         c = keypoint.pt[0]
+        print('c',c)
         r = keypoint.pt[1]
+        print('r',r)
     else:
         print("{} blobs found, only passing the first...".format(i) )
         keypoint = keypoints[0]
@@ -96,7 +99,7 @@ def blob_search(image_raw, color):
     ##################################
     # Edit below to mark keypoints and draw a circle around the block.
         # Draw a circle around the detected block
-        im_with_keypoints = cv2.circle(image_raw, (int(c), int(r)), 50, (0, 0, 255), 2)
+        #im_with_keypoints = cv2.circle(image_raw, (int(c), int(r)), 50, (0, 0, 255), 2)
 
         # Draw the keypoints on the detected block
         im_with_keypoints = cv2.drawKeypoints(im_with_keypoints, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
@@ -112,13 +115,50 @@ def blob_search(image_raw, color):
     # Note to students for pressing enter to continue
     im_with_keypoints = cv2.putText(im_with_keypoints, 'Press Enter to Continue', (0, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
 
+    blob_image_center = []
+
+    x1 = 0
+    y1 = 0
+    x2 = 0
+    y2 = 0
+
+	# for i in keypoints:
+	# 	blob_image_center.append([keypoints[i].pt[0], keypoints[i].pt[1]])
+    for i in range(len(keypoints)):
+        blob_image_center.append([keypoints[i].pt[0], keypoints[i].pt[1]])
+
+
+    if(len(blob_image_center) == 0):
+        x1 = 0
+		# print("No blob found!")
+    elif(len(blob_image_center) == 1):
+        x1 = int(blob_image_center[0][0])
+        print('x1',x1)
+        y1 = int(blob_image_center[0][1])
+
+    xw_yw = []
+
+    if(len(blob_image_center) == 0):
+        xw_yw = []
+		# print("No block found!")
+    else:
+		# Convert image coordinates to global world coordinate
+		# Hint: use IM2W() function
+        [x1w,y1w] = IMG2W(x1,y1)
+        #[x2w,y2w] = IMG2W(x2,y2)
+
+        xw_yw.append([x1w,y1w])
+        #xw_yw.append([x2w,y2w])
+    print('xw_yw',xw_yw)
+    print('blob_image_center',blob_image_center)
+
     cv2.namedWindow("Press Enter to Continue")
     cv2.imshow("Press Enter to Continue", im_with_keypoints)
-
+    return xw_yw
     while True:
         key = cv2.waitKey(0)
         if key == 13:
             cv2.destroyAllWindows()
             break
-
-    return r,c
+    #print(xw_yw)
+    #return xw_yw
