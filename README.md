@@ -30,4 +30,5 @@ Based on the positions, UR3 arm can pick blocks and place them at the right plac
 
 ## Demo
 Update1: https://www.youtube.com/watch?v=iueSvHNdfyA
+
 Update2: https://www.youtube.com/watch?v=4JLpOHLt_TQ
