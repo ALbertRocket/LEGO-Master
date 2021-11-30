@@ -11,7 +11,9 @@ Xingchen Zhou
 ## Usage
 
 This project is aimed to clean the LEGO blocks on the floor and place them in order.
+
 The color and shape of LEGO blocks can be dectected and their position will be recorded.
+
 Based on the positions, UR3 arm can pick blocks and place them at the right place.
 
 ### Terminal 1  
