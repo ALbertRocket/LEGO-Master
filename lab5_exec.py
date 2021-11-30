@@ -8,6 +8,7 @@ import random
 import cv2
 import argparse
 import sys
+import math
 
 from geometry_msgs.msg import Point
 from lab5_spawn_block import *
@@ -43,16 +44,15 @@ num_configs = 5
 # Place holder for block world positions
 block_green_world = None
 block_yellow_world = None
-
+block_cylinder_world = None
+block_rectangle_world = None
 # Final goal positions
 # PLEASE USE THE FOLLOWING GOAL
-z_end_H = 0.04
-green_world_goal1 = [0.3, 0.05, z_end_H]
-green_world_goal2 = [0.4, 0.05, z_end_H]
-
-yellow_world_goal1 = [0.3, 0.25, z_end_H]
-yellow_world_goal2 = [0.4, 0.25, z_end_H]
-
+z_end_H = 0.032
+green_world_goal = [0.2, -0.032]
+yellow_world_goal = [0.3, -0.032]
+cylinder_world_goal = [0.4, -0.032]
+rectangle_world_goal = [0.2, -0.1]
 ############## Your Code Start Here ##############
 
 """
@@ -61,18 +61,12 @@ Whenever block_[color]/world publishes info these callback functions are called.
 """
 # image (camera) position publisher
 # world position subscriber
+def gripper_callback(msg):
+    
+    global digital_gripper
+    digital_gripper = msg.DIGIN
 
 ############### Your Code End Here ###############
-
-
-"""
-Whenever ur3/gripper_input publishes info this callback function is called.
-"""
-def input_callback(msg):
-
-    global digital_in_0
-    digital_in_0 = msg.DIGIN
-    digital_in_0 = digital_in_0 & 1 # Only look at least significant bit, meaning index 0
 
 
 """
@@ -212,12 +206,13 @@ def move_block(pub_cmd, loop_rate, start_xw_yw_zw, target_xw_yw_zw, vel, accel):
 
     xstart = start_xw_yw_zw[0]
     ystart = start_xw_yw_zw[1]
-    zstart = z_end_H
-    zstart_high = zstart + 0.1
+    zstart = start_xw_yw_zw[2]
+    zstart_high = zstart + 0.12
     xend = target_xw_yw_zw[0]
     yend = target_xw_yw_zw[1]
     zend = target_xw_yw_zw[2]
-    zend_high = zend + 0.1
+    #print('zend',zend)
+    zend_high = zend + 0.12
     blobdest_lower = lab_invk(xstart, ystart, zstart, 0)
     blobdest_higher = lab_invk(xstart, ystart, zstart_high, 0)
     blobtarget_lower = lab_invk(xend, yend, zend, 0)
@@ -227,9 +222,10 @@ def move_block(pub_cmd, loop_rate, start_xw_yw_zw, target_xw_yw_zw, vel, accel):
     move_arm(pub_cmd, loop_rate, blobdest_higher, 4.0, 4.0)
     time.sleep(1)
     move_arm(pub_cmd, loop_rate, blobdest_lower, 4.0, 4.0)
+    time.sleep(2.0)
     gripper(pub_cmd, loop_rate, suction_on)
     time.sleep(1.0)
-    if digital_in_0 == 0:
+    if digital_gripper == 0:
         move_arm(pub_cmd, loop_rate, go_away, 4.0, 4.0)
         gripper(pub_cmd, loop_rate, suction_off)
         sys.exit()
@@ -237,7 +233,8 @@ def move_block(pub_cmd, loop_rate, start_xw_yw_zw, target_xw_yw_zw, vel, accel):
     time.sleep(1.0)
     move_arm(pub_cmd, loop_rate, blobtarget_higher, 4.0 ,4.0)
     time.sleep(1)
-    move_arm(pub_cmd, loop_rate, blobtarget_lower, 4.0 ,4.0)
+    move_arm(pub_cmd, loop_rate, blobtarget_lower, 0.5 ,4.0)
+    #time.sleep(1.0)
     gripper(pub_cmd, loop_rate, suction_off)
     move_arm(pub_cmd, loop_rate, blobtarget_higher, 4.0 ,4.0)
     move_arm(pub_cmd, loop_rate, go_away, 4.0 ,4.0)
@@ -267,6 +264,8 @@ class ImageConverter:
 
         global block_green_world # store found red blocks in this list
         global block_yellow_world # store found green blocks in this list
+        global block_cylinder_world
+        global block_rectangle_world
 
         try:
 		  # Convert ROS image to OpenCV image
@@ -288,37 +287,44 @@ class ImageConverter:
 		# the image frame to the global world frame. 
 		
         block_yellow_world = blob_search(cv_image, "yellow")
-        print('test',block_yellow_world)
+        #print('yellow_block',block_yellow_world)
         block_green_world = blob_search(cv_image, "green")
-
-if __name__ == '__main__':
+        #print('green_block',block_green_world)
+        block_cylinder_world = blob_search(cv_image, "cylinder")
+        block_rectangle_world = blob_search(cv_image, "rectangle")
+        
+        
+def main():
 
     global go_away
     global block_green_world
     global block_yellow_world
+    global block_cylinder_world
+    global block_rectangle_world
     global green_world_goal
     global yellow_world_goal
-
+    global cylinder_world_goal
+    global rectangle_world_goal
     # Parser
-    parser = argparse.ArgumentParser(description='Please specify if a block is taken away or not')
-    parser.add_argument('--missing', type=str, default='False')
-    parser.add_argument('--image', type=int, default=0)
-    args = parser.parse_args()
+    #parser = argparse.ArgumentParser(description='Please specify if a block is taken away or not')
+    #parser.add_argument('--missing', type=str, default='False')
+    #parser.add_argument('--block', type=int, default=0)
+    #args = parser.parse_args()
 
     # Check parser
-    if args.missing.lower() == 'true':
-        missing_block = True
-    elif args.missing.lower() == 'false':
-        missing_block = False
-    else:
-        print("Invalid argument for missing block, enter True of False")
-        sys.exit()
+    #if args.missing.lower() == 'true':
+    #    missing_block = True
+    #elif args.missing.lower() == 'false':
+    #    missing_block = False
+    #else:
+    #    print("Invalid argument for missing block, enter True of False")
+    #    sys.exit()
 
-    if args.image < 0 or args.image > 4:
-        print("Invalid argument for image.  Enter a number from 0 to 4")
-        sys.exit()
-    else:
-        config_idx = args.image
+    #if args.block < 0 or args.block > 4:
+    #    print("Invalid argument for block.  Enter a number from 0 to 4")
+    #    sys.exit()
+    #else:
+    #    config_idx = args.block - 1
 
     # Initialize ROS node
     rospy.init_node('lab5_exec', anonymous=True)
@@ -329,7 +335,7 @@ if __name__ == '__main__':
     # Initialize subscriber to ur3/position & ur3/gripper_input and callback fuction
     # each time data is published
     sub_position = rospy.Subscriber('ur3/position', position, position_callback)
-    sub_input = rospy.Subscriber('ur3/gripper_input', gripper_input, input_callback)
+    sub_input = rospy.Subscriber('ur3/gripper_input', gripper_input, gripper_callback)
 
     # Initialize the rate to publish to ur3/command
     loop_rate = rospy.Rate(SPIN_RATE)
@@ -354,45 +360,80 @@ if __name__ == '__main__':
     move_arm(pub_command, loop_rate, go_away, vel, accel)
 
 
-    # Spawn block
-    spawn_block(config_idx, missing_block)
-
-    # Get path to image
-    lab5_path = rospack.get_path('lab5pkg_py')
-    image_path = os.path.join(lab5_path, 'scripts', 'configs', str(config_idx) + '.jpg')
-    # Read image
-    raw_image = cv2.imread(image_path)
-
-    # Flip the image (Legacy webcam config)
-    cv_image = cv2.flip(raw_image, -1)
-
-    # Call blob search (row, col)
-    #green_image_rc = blob_search(cv_image.copy(), 'green')
-    #yellow_image_rc = blob_search(cv_image.copy(), 'yellow')
-
-    ############## Your Code Start Here ##############
-    # Hint: Remember to delay for your subscriber to update
-    # Otherwise you might get None or old images (when running lab 5 multiple times)
-    # a short rospy.sleep(time in seconds) after you publish should be sufficient
-
-    # lab 2 move_block()
-    #time.sleep(10)
     print('xw_yw_Y: ', block_yellow_world)
     print('xw_yw_G: ', block_green_world)
+    print('xw_yw_C: ', block_cylinder_world)
+    print('xw_yw_R: ', block_rectangle_world)
+    while block_yellow_world != None and block_green_world != None and block_cylinder_world != None :
 
-    yellow1 = block_yellow_world[0]
-    #yellow2 = block_yellow_world[1]
-    green1 = block_green_world[0]
-    #green2 = block_green_world[1]
-    #move_block(pub_command, loop_rate, [0.2, 0.1], [0.2, 0.2, 0.015], vel, accel)
-    move_block(pub_command, loop_rate, yellow1, yellow_world_goal1, vel, accel)
-    #move_block(pub_command, loop_rate, yellow2, yellow_world_goal2, vel, accel)
+        i = 0 
+        byw = block_yellow_world
+        bgw = block_green_world
+        bcw = block_cylinder_world
+        brw = block_rectangle_world
+        while i < len(byw):
+            yellow = list(byw[i]) 
+            yellow.append(z_end_H)
+            yellow_goal = yellow_world_goal
+            yellow_goal.append(0)
+            if i == 0:
+                yellow_goal[2] = z_end_H 
+                
+            else:
+                yellow_goal[2] = 0.015 + 0.032*i
+                
+            move_block(pub_command, loop_rate, yellow, yellow_goal, vel, accel)
+            i = i+1
+        j = 0
+        while j < len(bgw):
+            green = list(bgw[j])
+            green.append(z_end_H)
+            green_goal = green_world_goal
+            green_goal.append(0)
+            if i == 0:
+                green_goal[2] = z_end_H 
+  
+            else:
+                green_goal[2] = 0.015 + 0.032*i
+            
+            move_block(pub_command, loop_rate, green, green_goal, vel, accel)
+            j = j+1 
 
-    move_block(pub_command, loop_rate, green1, green_world_goal1, vel, accel)
-    #move_block(pub_command, loop_rate, green2, green_world_goal2, vel, accel)
+        cylinder = list(bcw[0])
+        cylinder.append(z_end_H)
+        cylinder_goal = cylinder_world_goal
+        cylinder_goal.append(0)
+        cylinder_goal[2] = z_end_H 
+        #print("cylinder",cylinder)
+        move_block(pub_command, loop_rate, cylinder, cylinder_goal, vel, accel)
+
+        rectangle = list(brw[0])
+        rectangle.append(z_end_H)
+        rectangle_goal = rectangle_world_goal
+        rectangle_goal.append(0)
+        rectangle_goal[2] = z_end_H 
+        move_block(pub_command, loop_rate, rectangle, rectangle_goal, vel, accel)
+
+        move_arm(pub_command, loop_rate, go_away, vel, accel)
+        rospy.loginfo("Task Completed!")
+        print("Use Ctrl+C to exit program")
+        rospy.spin()
+    
+
+    #time.sleep(5)
+
+    print('complete!')
 
     ############## Your Code End Here ###############
 
     # Move arm to away position
-    move_arm(pub_command, loop_rate, go_away, vel, accel)
-    rospy.sleep(1)
+    #move_arm(pub_command, loop_rate, go_away, vel, accel)
+    #rospy.sleep(1)
+
+if __name__ == '__main__':
+
+    try:
+        main()
+    # When Ctrl+C is executed, it catches the exception
+    except rospy.ROSInterruptException:
+        pass
