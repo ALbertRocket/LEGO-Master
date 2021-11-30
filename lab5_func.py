@@ -50,7 +50,7 @@ def lab_fk(theta1, theta2, theta3, theta4, theta5, theta6):
 	# Initialize the return_value
     return_value = [None, None, None, None, None, None]
 
-    print("Foward kinematics calculated:\n")
+    #print("Foward kinematics calculated:\n")
 
 	# =================== Your code starts here ====================#
     theta = np.array([theta1,theta2,theta3,theta4,theta5,theta6])
@@ -86,7 +86,7 @@ def lab_fk(theta1, theta2, theta3, theta4, theta5, theta6):
 
 	# ==============================================================#
 
-    print(str(T) + "\n")
+    #print(str(T) + "\n")
 
     return_value[0] = theta1 + PI
     return_value[1] = theta2
@@ -144,7 +144,7 @@ def lab_invk(xWgrip, yWgrip, zWgrip, yaw_WgripDegree):
     theta4 = -(theta3 + theta2)
     theta5 = -math.pi/2
     thetas = [theta1,theta2,theta3,theta4,theta5,theta6]
-    print("theta1 to theta6: " + str(thetas) + "\n")
+    #print("theta1 to theta6: " + str(thetas) + "\n")
 
     return lab_fk(float(thetas[0]), float(thetas[1]), float(thetas[2]), \
                   float(thetas[3]), float(thetas[4]), float(thetas[5]) )
