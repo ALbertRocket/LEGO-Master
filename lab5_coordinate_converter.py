@@ -32,9 +32,9 @@ def IMG2W(c,r):
     ################################ Your Code Start Here ################################
     # Given theta, beta, tx, ty, calculate the world coordinate of r,c namely xw, yw
     Oc = c - w/2
-    print('Oc',Oc)
+    #print('Oc',Oc)
     Or = r - h/2
-    print('Or',Or)
+    #print('Or',Or)
     A = np.array([[Or/beta], [Oc/beta]])
     #print('A',A)
     Rz = np.array([[math.cos(theta), -1*math.sin(theta)], \
